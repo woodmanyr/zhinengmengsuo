@@ -1,0 +1,184 @@
+[Root]
+Most Recent Package=标准安装软件包 1
+
+
+[Package|标准安装软件包 1|Root]
+SubWizProgID=PDWizard.SetupPkgSubWiz
+BuildFolder=D:\书籍\淘宝图片\2017年单片机资料2\23 门禁系统  550\上位机\包
+
+[Package|标准安装软件包 1|Configure DAO ISAMs]
+Applicable=No
+
+[Package|标准安装软件包 1|Configure DAO ODBC]
+JetWorkspace=
+ODBCDirect=
+
+[Package|标准安装软件包 1|Files Found]
+
+[Package|标准安装软件包 1|Files Released]
+
+[Package|标准安装软件包 1|Missing Dependency Information]
+C:\Program Files\Common Files\System\ado\msado25.tlb=
+
+[Package|标准安装软件包 1|Out-of-Date Dependency Information]
+C:\Windows\System32\MCI32.OCX=
+
+[Package|标准安装软件包 1|Files Added]
+
+[Package|标准安装软件包 1|Files Removed]
+
+[Package|标准安装软件包 1|Files In Project]
+D:\书籍\淘宝图片\2017年单片机资料2\23 门禁系统  550\上位机\门禁系统.exe=Yes
+C:\Windows\System32\msvbvm60.dll=Yes
+C:\Windows\System32\oleaut32.dll=Yes
+C:\Windows\System32\olepro32.dll=Yes
+C:\Windows\System32\asycfilt.dll=Yes
+C:\Windows\System32\stdole2.tlb=Yes
+F:\vb\Wizards\PDWizard\Redist\COMCAT.DLL=Yes
+C:\Windows\System32\VB6CHS.DLL=Yes
+C:\Windows\System32\TABCTL32.OCX=Yes
+C:\Windows\System32\TABCTCHS.DLL=Yes
+C:\Windows\System32\MSFLXGRD.OCX=Yes
+C:\Windows\System32\FLXGDCHS.DLL=Yes
+C:\Windows\System32\COMDLG32.OCX=Yes
+C:\Windows\System32\CMDLGCHS.DLL=Yes
+C:\Windows\System32\MSCOMCTL.OCX=Yes
+C:\Windows\System32\MSCMCCHS.DLL=Yes
+C:\Windows\System32\MSCOMCT2.OCX=Yes
+C:\Windows\System32\MSCC2CHS.DLL=Yes
+C:\Windows\System32\MSINET.OCX=Yes
+C:\Windows\System32\INETCHS.DLL=Yes
+C:\Windows\System32\RICHTX32.OCX=Yes
+F:\vb\Wizards\PDWizard\Redist\RICHED32.DLL=Yes
+F:\vb\Wizards\PDWizard\Redist\GAPI32.DLL=Yes
+C:\Windows\System32\RCHTXCHS.DLL=Yes
+C:\Windows\System32\MSCHRT20.OCX=Yes
+C:\Windows\System32\MSCH2CHS.DLL=Yes
+C:\Windows\System32\MSWINSCK.OCX=Yes
+C:\Windows\System32\WINSKCHS.DLL=Yes
+C:\Windows\System32\MSMAPI32.OCX=Yes
+C:\Windows\System32\MSMPICHS.DLL=Yes
+C:\Windows\System32\MCI32.OCX=Yes
+C:\Windows\System32\MCICHS.DLL=Yes
+C:\Windows\System32\PICCLP32.OCX=Yes
+C:\Windows\System32\PCCLPCHS.DLL=Yes
+C:\Windows\System32\SYSINFO.OCX=Yes
+C:\Windows\System32\SYSINCHS.DLL=Yes
+C:\Windows\System32\MSCOMM32.OCX=Yes
+C:\Windows\System32\MSCOMCHS.DLL=Yes
+C:\Windows\System32\MSMASK32.OCX=Yes
+C:\Windows\System32\MSMSKCHS.DLL=Yes
+C:\Windows\System32\MSDATGRD.OCX=Yes
+C:\Windows\System32\MSSTDFMT.DLL=Yes
+C:\Windows\System32\STDFTCHS.DLL=Yes
+C:\Windows\System32\DATGDCHS.DLL=Yes
+C:\Windows\System32\MSDATLST.OCX=Yes
+C:\Windows\System32\DATLSCHS.DLL=Yes
+C:\Windows\System32\COMCT332.OCX=Yes
+C:\Windows\System32\CMCT3CHS.DLL=Yes
+C:\Windows\System32\MSADODC.OCX=Yes
+C:\Windows\System32\ADODCCHS.DLL=Yes
+C:\Windows\System32\MSHFLXGD.OCX=Yes
+C:\Windows\System32\MSHFGCHS.DLL=Yes
+C:\Program Files\Common Files\System\ado\msado25.tlb=Yes
+C:\Windows\System32\MSBIND.DLL=Yes
+F:\vb\Wizards\PDWizard\SETUP.EXE=Yes
+F:\vb\Wizards\PDWizard\SETUP1.EXE=Yes
+C:\Windows\System32\VB6STKIT.DLL=Yes
+F:\vb\Wizards\PDWizard\ST6UNST.EXE=Yes
+
+[Package|标准安装软件包 1|Configure Registry Files]
+Applicable=No
+
+[Package|标准安装软件包 1|Configure Remote Servers]
+Applicable=No
+
+[Package|标准安装软件包 1|Install Locations]
+D:\书籍\淘宝图片\2017年单片机资料2\23 门禁系统  550\上位机\门禁系统.exe=$(AppPath)
+C:\Windows\System32\msvbvm60.dll=$(WinSysPathSysFile)
+C:\Windows\System32\oleaut32.dll=$(WinSysPathSysFile)
+C:\Windows\System32\olepro32.dll=$(WinSysPathSysFile)
+C:\Windows\System32\asycfilt.dll=$(WinSysPathSysFile)
+C:\Windows\System32\stdole2.tlb=$(WinSysPathSysFile)
+F:\vb\Wizards\PDWizard\Redist\COMCAT.DLL=$(WinSysPathSysFile)
+C:\Windows\System32\VB6CHS.DLL=$(WinSysPath)
+C:\Windows\System32\TABCTL32.OCX=$(WinSysPath)
+C:\Windows\System32\TABCTCHS.DLL=$(WinSysPath)
+C:\Windows\System32\MSFLXGRD.OCX=$(WinSysPath)
+C:\Windows\System32\FLXGDCHS.DLL=$(WinSysPath)
+C:\Windows\System32\COMDLG32.OCX=$(WinSysPath)
+C:\Windows\System32\CMDLGCHS.DLL=$(WinSysPath)
+C:\Windows\System32\MSCOMCTL.OCX=$(WinSysPath)
+C:\Windows\System32\MSCMCCHS.DLL=$(WinSysPath)
+C:\Windows\System32\MSCOMCT2.OCX=$(WinSysPath)
+C:\Windows\System32\MSCC2CHS.DLL=$(WinSysPath)
+C:\Windows\System32\MSINET.OCX=$(WinSysPath)
+C:\Windows\System32\INETCHS.DLL=$(WinSysPath)
+C:\Windows\System32\RICHTX32.OCX=$(WinSysPath)
+F:\vb\Wizards\PDWizard\Redist\RICHED32.DLL=$(WinSysPathSysFile)
+F:\vb\Wizards\PDWizard\Redist\GAPI32.DLL=$(WinSysPathSysFile)
+C:\Windows\System32\RCHTXCHS.DLL=$(WinSysPath)
+C:\Windows\System32\MSCHRT20.OCX=$(WinSysPath)
+C:\Windows\System32\MSCH2CHS.DLL=$(WinSysPath)
+C:\Windows\System32\MSWINSCK.OCX=$(WinSysPath)
+C:\Windows\System32\WINSKCHS.DLL=$(WinSysPath)
+C:\Windows\System32\MSMAPI32.OCX=$(WinSysPath)
+C:\Windows\System32\MSMPICHS.DLL=$(WinSysPath)
+C:\Windows\System32\MCI32.OCX=$(WinSysPath)
+C:\Windows\System32\MCICHS.DLL=$(WinSysPath)
+C:\Windows\System32\PICCLP32.OCX=$(WinSysPath)
+C:\Windows\System32\PCCLPCHS.DLL=$(WinSysPath)
+C:\Windows\System32\SYSINFO.OCX=$(WinSysPath)
+C:\Windows\System32\SYSINCHS.DLL=$(WinSysPath)
+C:\Windows\System32\MSCOMM32.OCX=$(WinSysPath)
+C:\Windows\System32\MSCOMCHS.DLL=$(WinSysPath)
+C:\Windows\System32\MSMASK32.OCX=$(WinSysPath)
+C:\Windows\System32\MSMSKCHS.DLL=$(WinSysPath)
+C:\Windows\System32\MSDATGRD.OCX=$(WinSysPath)
+C:\Windows\System32\MSSTDFMT.DLL=$(WinSysPath)
+C:\Windows\System32\STDFTCHS.DLL=$(WinSysPath)
+C:\Windows\System32\DATGDCHS.DLL=$(WinSysPath)
+C:\Windows\System32\MSDATLST.OCX=$(WinSysPath)
+C:\Windows\System32\DATLSCHS.DLL=$(WinSysPath)
+C:\Windows\System32\COMCT332.OCX=$(WinSysPath)
+C:\Windows\System32\CMCT3CHS.DLL=$(WinSysPath)
+C:\Windows\System32\MSADODC.OCX=$(WinSysPath)
+C:\Windows\System32\ADODCCHS.DLL=$(WinSysPath)
+C:\Windows\System32\MSHFLXGD.OCX=$(WinSysPath)
+C:\Windows\System32\MSHFGCHS.DLL=$(WinSysPath)
+C:\Program Files\Common Files\System\ado\msado25.tlb=$(WinSysPath)
+C:\Windows\System32\MSBIND.DLL=$(WinSysPath)
+F:\vb\Wizards\PDWizard\SETUP.EXE=$(AppPath)
+F:\vb\Wizards\PDWizard\SETUP1.EXE=$(WinPath)
+C:\Windows\System32\VB6STKIT.DLL=$(WinSysPathSysFile)
+F:\vb\Wizards\PDWizard\ST6UNST.EXE=$(WinPath)
+
+[Package|标准安装软件包 1|Configure Shared Files]
+Applicable=Yes
+D:\书籍\淘宝图片\2017年单片机资料2\23 门禁系统  550\上位机\门禁系统.exe=No
+
+[Package|标准安装软件包 1|Distribution]
+Type=single
+Size=
+Title=Project1
+
+[Package|标准安装软件包 1|IconGroups]
+Group0=Project1
+PrivateGroup0=True
+Parent0=$(Programs)
+
+[Package|标准安装软件包 1|Project1]
+Icon1=门禁系统.exe
+Title1=Project1
+StartIn1=$(AppPath)
+Key1=Icon1
+
+[Package|标准安装软件包 1|Package]
+PackageFolder=D:\书籍\淘宝图片\2017年单片机资料2\23 门禁系统  550\上位机\包
+ProjectFolder=D:\书籍\淘宝图片\2017年单片机资料2\23 门禁系统  550\上位机
+ServerSideCab=
+File1=D:\书籍\淘宝图片\2017年单片机资料2\23 门禁系统  550\上位机\包\setup.exe
+File2=D:\书籍\淘宝图片\2017年单片机资料2\23 门禁系统  550\上位机\包\Setup.Lst
+File3=D:\书籍\淘宝图片\2017年单片机资料2\23 门禁系统  550\上位机\包\门禁系统.CAB
+Handler1=PDWizard.FolderDplySubWiz
+Handler2=PDWizard.WebPostDplySubWiz

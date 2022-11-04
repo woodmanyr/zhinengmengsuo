@@ -1,0 +1,656 @@
+C51 COMPILER V9.01   MAIN                                                                  04/05/2022 15:07:19 PAGE 1   
+
+
+C51 COMPILER V9.01, COMPILATION OF MODULE MAIN
+OBJECT MODULE PLACED IN main.OBJ
+COMPILER INVOKED BY: D:\keil4\C51\BIN\C51.EXE main.c COMPACT BROWSE DEBUG OBJECTEXTEND
+
+line level    source
+
+   1          /*************************************************************
+   2          单片机    STC89C52  
+   3          淘宝店铺：荣荣电子设计
+   4          淘宝链接：https://shop121969261.taobao.com
+   5          联系方式：QQ：939931828
+   6          补充说明：本店铺还有其他各种单片机作品，购买作品我们将赠送与程序配套的原理图、PCB、论文。
+   7          ***************************************************************/
+   8          #include "reg52.h"
+   9          #include"12864.h"
+  10          #include "MFRC522.h"
+  11          #include <intrins.h>
+  12          bit  flag_REC=0; 
+  13          bit  flag    =0; 
+  14          unsigned char  ii=0,mm=0,m1=20;
+  15          int  key_bit=0,YY=-2;//上位机按键
+  16          int objTemp,envTemp,Tem;         //物体温度和环境温度
+  17          unsigned int  dat=0;
+  18          sbit     LED1  =    P2^2;//控制灯
+  19          sbit     LED  =     P2^3;//控制继电器
+  20          sbit     beep  =    P2^4;//控制蜂鸣器
+  21          uchar code dis77[] = {"  系统已经锁定  "};
+  22          uchar code dis88[] = {"  请联系管理员"};
+  23          uchar code dis1[] = {"  ★欢迎使用★  "};
+  24          uchar code dis2[] = {"门禁卡管理系统  "};
+  25          uchar code dis11[] = {"*              "};
+  26          uchar code dis12[] = {"* * * * * * * * "};
+  27          uchar code dis4[] = {"  ★管理界面★  "};
+  28          uchar code dis13[] ={"请输入八位密码："};
+  29          uchar code dis5[] ={"  ★智能IC卡★  "};
+  30          uchar code dis14[] ={"    密码错误   "};
+  31          uchar code dis15[] ={"    密码符合    "};
+  32          uchar code table8[]={"注册成功:      "};
+  33          uchar code table9[]={"撤销成功:      "};
+  34          uchar code table10[]={"无效卡:        "};
+  35          uchar code dis8[] = {"                "};
+  36          uchar code dis3[] = {"                "};
+  37          uchar code dis7[] = {"                "};
+  38          uchar code table33[]={"  体温:"};
+  39          unsigned char code data1[16] = {0x12,0x34,0x56,0x78,0xED,0xCB,0xA9,0x87,0x12,0x34,0x56,0x78,0x01,0xFE,0x01
+             -,0xFE};
+  40          unsigned char code  Yankey[6]  = {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF}; //原始密码
+  41          unsigned char code  XiugaiYunKey[16]= {0xFF,0xFF,0xFF,0xFF,0xFF,0xFE,0xFF,0x07,0x80,0x69,0xFF, 0xFF, 0xFF,
+             - 0xFF, 0xFF, 0xFF};    //修改后的密码
+  42          unsigned char code  Nowkey[6]  = {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFE}; //xianzia 密码
+  43          unsigned char code  XiugaiNowKey[16]= {0xFF,0xFF,0xFF,0xFF,0xFF,0xFF,0xFF,0x07,0x80,0x69,0xFF, 0xFF, 0xFF,
+             - 0xFF, 0xFF, 0xFF};    //修改后的密码
+  44          unsigned char g_ucTempbuf[20];
+  45          unsigned char g_ucTempbuf1[10];
+  46          char code tab[4][4]={   
+  47                                                                                                          
+  48                                                                  { 'A','8','4','0'},
+  49                                                  {'B','9','5','1'},
+  50                                                  {'C','D','6','2'},
+  51                                                  {'E','*','7','3'}
+  52                                                     };       //0到F的16个键植
+C51 COMPILER V9.01   MAIN                                                                  04/05/2022 15:07:19 PAGE 2   
+
+  53          
+  54          unsigned char receive[16];
+  55          void InitializeSystem();
+  56          void Zhu_Ce();//注册 账户
+  57          void Ce_Xiao();//撤销卡
+  58          void YunXingZhong();  
+  59          void WaitCardOff(void); 
+  60          void send_ss();
+  61          sbit SCL=P2^0;//时钟线
+  62          sbit SDA=P2^1;//数据线 
+  63          void start_bit(); //MLX90614 发起始位子程序
+  64          void stop_bit(); //MLX90614 发结束位子程序
+  65          unsigned char rx_byte(void); //MLX90614 接收字节子程序
+  66          void send_bit(void); //MLX90614 发送位子程序
+  67          void tx_byte(unsigned char dat_byte); //MLX90614 接收字节子程序
+  68          void receive_bit(void); //MLX90614 接收位子程序
+  69          unsigned int ReadObjectTemp(void); //读温度数据
+  70          unsigned int ReadEnvironTemp(void);
+  71          #define Nack_counter 10
+  72          //************数据定义****************
+  73          unsigned char bit_out=1;
+  74          unsigned char bit_in=1;
+  75          unsigned char DataH,DataL,Pecreg;
+  76          void STC_send_bluetooth(unsigned char a)        
+  77          {                                                       //注意：若单片机TXD（P3.1）无上拉能力，必须在P3.1端接上拉电阻。本次测试需要接上拉电阻
+  78   1              TI=0;   
+  79   1              SBUF=a;
+  80   1              while(TI==0);
+  81   1              TI=0;}
+  82          void start_bit(void)
+  83          {
+  84   1              SDA=1;
+  85   1              _nop_();_nop_();_nop_();_nop_();_nop_();
+  86   1              SCL=1;
+  87   1              _nop_();_nop_();_nop_();_nop_();_nop_();
+  88   1              SDA=0;
+  89   1              _nop_();_nop_();_nop_();_nop_();_nop_();
+  90   1              SCL=0;
+  91   1              _nop_();_nop_();_nop_();_nop_();_nop_();
+  92   1      }
+  93          
+  94          void stop_bit(void)
+  95          {
+  96   1              SCL=0;
+  97   1              _nop_();_nop_();_nop_();_nop_();_nop_();
+  98   1              SDA=0;
+  99   1              _nop_();_nop_();_nop_();_nop_();_nop_();
+ 100   1              SCL=1;
+ 101   1              _nop_();_nop_();_nop_();_nop_();_nop_();
+ 102   1              SDA=1;
+ 103   1      }
+ 104          
+ 105          
+ 106          //---------发送一个字节---------
+ 107          void tx_byte(unsigned char dat_byte)
+ 108          {
+ 109   1              char i,n,dat;
+ 110   1              n=Nack_counter;
+ 111   1      
+ 112   1              dat=dat_byte;
+ 113   1              for(i=0;i<8;i++)
+ 114   1              {
+C51 COMPILER V9.01   MAIN                                                                  04/05/2022 15:07:19 PAGE 3   
+
+ 115   2                      if(dat&0x80)
+ 116   2                      bit_out=1;
+ 117   2                      else
+ 118   2                      bit_out=0;
+ 119   2                      send_bit();
+ 120   2                      dat=dat<<1;
+ 121   2              }
+ 122   1              receive_bit();
+ 123   1              if(bit_in==1)
+ 124   1              {
+ 125   2                      stop_bit();
+ 126   2                      if(n!=0)
+ 127   2                      {n--;}
+ 128   2                      else
+ 129   2                              return;
+ 130   2              }
+ 131   1              else
+ 132   1                      return;
+ 133   1              start_bit();
+ 134   1              tx_byte(dat_byte);              //函数自身回调
+ 135   1      }
+ 136          
+ 137          ////---------发送一个字节---------
+ 138          //void tx_byte(unsigned char dat_byte)
+ 139          //{
+ 140          //      char i,n,dat;
+ 141          //      n=Nack_counter;
+ 142          //      TX_again:
+ 143          //      dat=dat_byte;
+ 144          //      for(i=0;i<8;i++)
+ 145          //      {
+ 146          //              if(dat&0x80)
+ 147          //              bit_out=1;
+ 148          //              else
+ 149          //              bit_out=0;
+ 150          //              send_bit();
+ 151          //              dat=dat<<1;
+ 152          //      }
+ 153          //      receive_bit();
+ 154          //      if(bit_in==1)
+ 155          //      {
+ 156          //              stop_bit();
+ 157          //              if(n!=0)
+ 158          //              {n--;goto Repeat;}
+ 159          //              else
+ 160          //              goto exit;
+ 161          //      }
+ 162          //      else
+ 163          //      goto exit;
+ 164          //      Repeat:
+ 165          //      start_bit();
+ 166          //      goto TX_again;
+ 167          //      exit: ;
+ 168          //}
+ 169          //-----------发送一个位---------
+ 170          void send_bit(void)
+ 171          {
+ 172   1              if(bit_out==0)
+ 173   1                      SDA=0;
+ 174   1              else
+ 175   1                      SDA=1;
+ 176   1              _nop_();
+C51 COMPILER V9.01   MAIN                                                                  04/05/2022 15:07:19 PAGE 4   
+
+ 177   1              SCL=1;
+ 178   1              _nop_();_nop_();_nop_();_nop_();
+ 179   1              _nop_();_nop_();_nop_();_nop_();
+ 180   1              SCL=0;
+ 181   1              _nop_();_nop_();_nop_();_nop_();
+ 182   1              _nop_();_nop_();_nop_();_nop_();
+ 183   1      }
+ 184          //----------接收一个字节--------
+ 185          unsigned char rx_byte(void)
+ 186          {
+ 187   1              unsigned char i,dat;
+ 188   1              dat=0;
+ 189   1              for(i=0;i<8;i++)
+ 190   1              {
+ 191   2                      dat=dat<<1;
+ 192   2                      receive_bit();
+ 193   2                      if(bit_in==1)
+ 194   2                      dat=dat+1;
+ 195   2              }
+ 196   1              send_bit();
+ 197   1              return dat;
+ 198   1      }
+ 199          //----------接收一个位----------
+ 200          void receive_bit(void)
+ 201          {
+ 202   1              SDA=1;bit_in=1;
+ 203   1              SCL=1;
+ 204   1              _nop_();_nop_();_nop_();_nop_();
+ 205   1              _nop_();_nop_();_nop_();_nop_();
+ 206   1              bit_in=SDA;
+ 207   1              _nop_();
+ 208   1              SCL=0;
+ 209   1              _nop_();_nop_();_nop_();_nop_();
+ 210   1              _nop_();_nop_();_nop_();_nop_();
+ 211   1      }
+ 212          
+ 213          //------------------------------
+ 214          unsigned int ReadObjectTemp(void)
+ 215          {
+ 216   1              start_bit();
+ 217   1              tx_byte(0x00); //Send SlaveAddress
+ 218   1              tx_byte(0x07); //Send Command
+ 219   1              start_bit();
+ 220   1              tx_byte(0x01);
+ 221   1              bit_out=0;
+ 222   1              DataL=rx_byte();
+ 223   1              bit_out=0;
+ 224   1              DataH=rx_byte();
+ 225   1              bit_out=1;
+ 226   1              Pecreg=rx_byte();
+ 227   1              stop_bit();
+ 228   1              return(DataH*256+DataL);
+ 229   1      }
+ 230          
+ 231          unsigned int ReadEnvironTemp(void)
+ 232          {
+ 233   1              start_bit();
+ 234   1              tx_byte(0x00); //Send SlaveAddress
+ 235   1              tx_byte(0x06); //Send Command
+ 236   1              start_bit();
+ 237   1              tx_byte(0x01);
+ 238   1              bit_out=0;
+C51 COMPILER V9.01   MAIN                                                                  04/05/2022 15:07:19 PAGE 5   
+
+ 239   1              DataL=rx_byte();
+ 240   1              bit_out=0;
+ 241   1              DataH=rx_byte();
+ 242   1              bit_out=1;
+ 243   1              Pecreg=rx_byte();
+ 244   1              stop_bit();
+ 245   1              return(DataH*256+DataL);
+ 246   1      }        
+ 247          void kbscan()          //键盘扫描
+ 248                  {
+ 249   1              unsigned char hang,lie,key,num; //定义变量行 列  按键  key 变量
+ 250   1              if(P1!=0x0f)  //检测按键按下
+ 251   1              delay(5);//消抖
+ 252   1              if(P1!=0x0f) //确认按键按下
+ 253   1                      {
+ 254   2                      switch(P1&0x0f) //检测列
+ 255   2                                      {
+ 256   3                                      case 0x0e:lie=0;break; //赋值lie=0;
+ 257   3                                      case 0x0d:lie=1;break;  //赋值lie=1;
+ 258   3                                      case 0x0b:lie=2;break;   //赋值lie=2;
+ 259   3                                      case 0x07:lie=3;break;     //赋值lie=3;
+ 260   3                                      } 
+ 261   2                      P1=0xf0;
+ 262   2                      P1=0xf0;
+ 263   2                      switch(P1&0xf0)  //检测行
+ 264   2                                      {
+ 265   3                                      case 0xe0:hang=0;break;//赋值hang=0;
+ 266   3                                      case 0xd0:hang=1;break;//赋值hang=1;
+ 267   3                                      case 0xb0:hang=2;break;//赋值hang=2
+ 268   3                                      case 0x70:hang=3;break;//赋值hang=3;
+ 269   3                                      }
+ 270   2                      P1=0x0f;
+ 271   2                      if(key_bit==2) YY=YY+2; 
+ 272   2                      while(P1!=0x0f);
+ 273   2                      key=tab[hang][lie];  //在数组对应找矩阵按键值
+ 274   2                      if((key_bit==0)||(key_bit==1))
+ 275   2                      if(key=='A'){++key_bit;if(key_bit==2) { key_bit=0;YY=0; }}  //菜单按键
+ 276   2                      if(key=='B'){Ce_Xiao();YY=0;} //撤销按键
+ 277   2                      if(key=='C'){Zhu_Ce();YY=0; } //注册按键
+ 278   2                      if(key_bit==2)  //输入八位密码
+ 279   2                       {
+ 280   3                      if(key=='D'){YY=0; diaplay(2,dis3);}  //删除按键
+ 281   3                      if((key=='0')||(key=='1')||(key=='2')||(key=='3')||(key=='4')||(key=='5')||(key=='6')||(key=='7')||(key=
+             -='8')||(key=='9'))//按键值0到9
+ 282   3              if(YY<17){lcd_pos(2,0); for(num=0;num<YY;num++){lcd_wdat(dis12[num]);} g_ucTempbuf1[YY/2]=key; } /
+             -/判断密码小于8位
+ 283   3              if(key=='*') {
+ 284   4                STC_send_bluetooth('C');
+ 285   4                    delay(10);
+ 286   4                        STC_send_bluetooth(objTemp/100%10+0x30);
+ 287   4                    STC_send_bluetooth(objTemp/10%10+0x30);
+ 288   4                        STC_send_bluetooth('.'); 
+ 289   4                        STC_send_bluetooth(objTemp%10+0x30);
+ 290   4                        delay(10);
+ 291   4                        display_cardnum2();
+ 292   4                        }
+ 293   3                         } //按键确认按键 发送八位密码给上位机
+ 294   2                      if(key=='E'){LED=0;LED1=0;beep=0;       delay(200);beep=1; LED1=1;LED=1; } //控制开关
+ 295   2      
+ 296   2      }
+ 297   1              else
+ 298   1                      key=0;
+C51 COMPILER V9.01   MAIN                                                                  04/05/2022 15:07:19 PAGE 6   
+
+ 299   1              //return (key);
+ 300   1              }
+ 301                  
+ 302                  void wendu()
+ 303          {
+ 304   1              unsigned char num;
+ 305   1          lcd_pos(3,0);             //设置显示位置为第四行的第1个字符
+ 306   1              for(num=0;num<8;num++)    //第一行要显示的11个字符
+ 307   1              {
+ 308   2               lcd_wdat(table33[num]);        
+ 309   2              }
+ 310   1        Tem=ReadObjectTemp();  //读取实物温度
+ 311   1        objTemp=((float)(Tem)*0.02-271.15)*10;
+ 312   1              Tem=ReadEnvironTemp();   //读取环境温度
+ 313   1              envTemp=((float)(Tem)*0.02-271.15)*10;
+ 314   1                      lcd_pos(3,4);
+ 315   1               lcd_wdat(objTemp/100%10+0x30);
+ 316   1               lcd_wdat(objTemp/10%10+0x30);
+ 317   1               lcd_wdat('.');
+ 318   1               lcd_wdat(objTemp%10+0x30);
+ 319   1               lcd_wdat('C');
+ 320   1       }                                                                                                              
+ 321          void main()
+ 322          {         
+ 323   1          lcd_init();  //液晶初始化
+ 324   1          InitializeSystem( );//串口初始化
+ 325   1          PcdReset();          //射频复位
+ 326   1          PcdAntennaOff();   //射频关闭天线
+ 327   1          PcdAntennaOn();        //射频打开天线
+ 328   1          M500PcdConfigISOType( 'A' );
+ 329   1          LED=1;
+ 330   1              LED1=1;
+ 331   1              beep=1;
+ 332   1              m1=45;
+ 333   1         while(1)
+ 334   1          { 
+ 335   2                      m1++;
+ 336   2                      if(m1>50)
+ 337   2                      {
+ 338   3                 wendu();m1=0;}
+ 339   2                 if(objTemp<375)
+ 340   2                 {
+ 341   3                 beep=1;
+ 342   3                 kbscan();
+ 343   3                 if(key_bit==0)//上电界面
+ 344   3                 {
+ 345   4                  diaplay(0,dis8);
+ 346   4                  diaplay(1,dis1);
+ 347   4                  diaplay(2,dis2);
+ 348   4                 // diaplay(3,dis8);
+ 349   4                  YunXingZhong();
+ 350   4                      }
+ 351   3                       if(key_bit==1)//管理界面
+ 352   3                 {  
+ 353   4                  diaplay(0,dis3);
+ 354   4                  diaplay(1,dis5);
+ 355   4                  diaplay(2,dis4);
+ 356   4                      delay(2);
+ 357   4                  //diaplay(3,dis3);
+ 358   4                      }
+ 359   3                      if(key_bit==2)//输入八位密码
+ 360   3                      {
+C51 COMPILER V9.01   MAIN                                                                  04/05/2022 15:07:19 PAGE 7   
+
+ 361   4              diaplay(0,dis3);
+ 362   4                  diaplay(1,dis13);
+ 363   4                 // diaplay(3,dis3);
+ 364   4           }
+ 365   3                       if(key_bit==3)  //密码错误
+ 366   3                      {
+ 367   4              diaplay(0,dis3);
+ 368   4                      diaplay(1,dis3);
+ 369   4                  diaplay(2,dis14);
+ 370   4                  //diaplay(3,dis3);
+ 371   4                      beep=0; delay(600);beep=1;
+ 372   4                      key_bit=0;
+ 373   4           }
+ 374   3                       if(key_bit==4) //密码符合
+ 375   3                      {
+ 376   4              diaplay(0,dis3);
+ 377   4                      diaplay(1,dis3);
+ 378   4                  diaplay(2,dis15);
+ 379   4                  //diaplay(3,dis3);
+ 380   4                      mm=0; LED=0;LED1=0;beep=0;      delay(200);beep=1; LED1=1;LED=1;ii=0;delay(400); //打开继电器
+ 381   4                      key_bit=0;
+ 382   4           }
+ 383   3                       if(mm==3)
+ 384   3                       {
+ 385   4            while(1)
+ 386   4                              {
+ 387   5              diaplay(0,dis3);
+ 388   5                      diaplay(1,dis77);
+ 389   5                  diaplay(2,dis88);
+ 390   5                 // diaplay(3,dis3);
+ 391   5                }
+ 392   4          } 
+ 393   3              }
+ 394   2              else {beep=0;}  
+ 395   2              }
+ 396   1        
+ 397   1      }
+ 398          
+ 399          
+ 400          
+ 401          
+ 402          /////////////////////////////////////////////////////////////////////
+ 403          //系统初始化
+ 404          /////////////////////////////////////////////////////////////////////
+ 405          void InitializeSystem()
+ 406          {
+ 407   1              P0 = 0xFF; P1 = 0xFF; P3 = 0xFF;P2 = 0xFF;
+ 408   1          TMOD = 0x21;  
+ 409   1          TH1 = 0xFd;                    //11.0592M晶振，9600波特率
+ 410   1          TL1 = 0xFd;
+ 411   1          TH0 = 0xfe;                    //11.0592M晶振，9600波特率
+ 412   1          TL0 = 0x33;         
+ 413   1              
+ 414   1              ET0 = 1;
+ 415   1          TR0 = 1;
+ 416   1      
+ 417   1              SM0 = 0;
+ 418   1              SM1 = 1;
+ 419   1              REN = 1;//允许串口接收 
+ 420   1              TR1 = 1;
+ 421   1              ES = 1;//开串口 中断
+ 422   1              EA = 1; 
+C51 COMPILER V9.01   MAIN                                                                  04/05/2022 15:07:19 PAGE 8   
+
+ 423   1      
+ 424   1      }  
+ 425          
+ 426          void timer0() interrupt 1          /* T0中断服务程序 */
+ 427          {
+ 428   1              TH0=0xfe;                  //11.0592M晶振，9600波特率
+ 429   1          TL0=0xee;
+ 430   1      }
+ 431          
+ 432          void sint() interrupt 4   //中断接收3个字节
+ 433          { 
+ 434   1         
+ 435   1              if(RI)                   //是否接收中断
+ 436   1          {
+ 437   2             RI=0;
+ 438   2             dat=SBUF;        
+ 439   2                              if(dat=='D')    //区别IC卡是否有效卡 
+ 440   2                {
+ 441   3                               ii=0;
+ 442   3                    }
+ 443   2                      if(dat=='E')    //
+ 444   2                {                                             
+ 445   3                               ii=2;
+ 446   3                    }
+ 447   2                      if(dat=='F')    //
+ 448   2                {                                             
+ 449   3                               ii=3;
+ 450   3                    }
+ 451   2                      if(dat=='G')    //
+ 452   2                {                                             
+ 453   3                                   ii=4;
+ 454   3                   }
+ 455   2                              if(ii==0){beep=0;       delay(400);beep=1; YY=0;}
+ 456   2                      if(ii==2){key_bit=2;diaplay(2,dis3);YY=0;}
+ 457   2                              if(ii==4){key_bit=4;YY=0;}//有效卡 并且控制继电器开关
+ 458   2                              if(ii==3){key_bit=3; YY=0;mm++;}
+ 459   2               }
+ 460   1      }
+ 461          
+ 462          void Zhu_Ce()//注册 账户
+ 463          {               
+ 464   1               while(1){
+ 465   2                   unsigned char status;
+ 466   2               status = PcdRequest(PICC_REQALL, g_ucTempbuf);//寻卡
+ 467   2               if (status != MI_OK)
+ 468   2               {    
+ 469   3                                break;
+ 470   3               }
+ 471   2                      display_type();//寻到卡后显示出该卡的类型
+ 472   2                  status = PcdAnticoll(g_ucTempbuf);//防冲撞
+ 473   2               if (status != MI_OK)
+ 474   2               {     break;   }
+ 475   2                  display_cardnum();//显示寻到的卡的序列号
+ 476   2                      status = PcdSelect(g_ucTempbuf);//选定卡片
+ 477   2               if (status != MI_OK)
+ 478   2               {      break;    }        
+ 479   2               status = PcdAuthState(PICC_AUTHENT1A,23,Yankey, g_ucTempbuf);//验证卡片密码（原始的密码）FF
+ 480   2               if (status != MI_OK)
+ 481   2              {         break;    }//  LED_GREEN = 1;
+ 482   2                       status = PcdWrite(22, data1);//写块
+ 483   2               if (status != MI_OK)
+ 484   2               {     break;  }
+C51 COMPILER V9.01   MAIN                                                                  04/05/2022 15:07:19 PAGE 9   
+
+ 485   2                       status = PcdWrite(23,XiugaiYunKey);//写块//修改后的密码 FE
+ 486   2               if (status != MI_OK)
+ 487   2               {     break;    }
+ 488   2                    diaplay(3,table8);
+ 489   2                         beep=0; //蜂鸣器响一声       
+ 490   2                              delay(40);
+ 491   2                              beep=1; 
+ 492   2                        WaitCardOff();//等待卡离开天线                                         
+ 493   2                        PcdHalt();//中止
+ 494   2                        }
+ 495   1                               
+ 496   1      }
+ 497          void Ce_Xiao()//撤销卡
+ 498          {
+ 499   1              unsigned char status;
+ 500   1                      while(1)
+ 501   1                      {
+ 502   2               status = PcdRequest(PICC_REQALL, g_ucTempbuf);//寻卡
+ 503   2               if (status != MI_OK)
+ 504   2               {    
+ 505   3                                  break;
+ 506   3               }
+ 507   2                      display_type();//寻到卡后显示出该卡的类型
+ 508   2                  status = PcdAnticoll(g_ucTempbuf);//防冲撞
+ 509   2               if (status != MI_OK)
+ 510   2               {     break;    }
+ 511   2                  display_cardnum();//显示寻到的卡的序列号
+ 512   2                      status = PcdSelect(g_ucTempbuf);//选定卡片
+ 513   2               if (status != MI_OK)
+ 514   2               {    break;   }        
+ 515   2               status = PcdAuthState(PICC_AUTHENT1A,23, Nowkey, g_ucTempbuf);//验证卡片密码（原始的密码）FE
+ 516   2               if (status != MI_OK)
+ 517   2              {         break;    }
+ 518   2                       status = PcdWrite(23,XiugaiNowKey);//写块//修改后的密码FF
+ 519   2               if (status != MI_OK)
+ 520   2               {     break;    }
+ 521   2                          beep=0; //蜂鸣器响一声      
+ 522   2                              delay(40);
+ 523   2                              beep=1; 
+ 524   2                diaplay(3,table9);
+ 525   2                        WaitCardOff();//等待卡离开天线                                         
+ 526   2                        PcdHalt();//中止      
+ 527   2                        } 
+ 528   1      }
+ 529          
+ 530          
+ 531          void YunXingZhong()     //程序运行中
+ 532          {  
+ 533   1        unsigned char status;
+ 534   1         while(1)
+ 535   1         {
+ 536   2                   status = PcdRequest(PICC_REQALL, g_ucTempbuf);//寻卡
+ 537   2               if (status != MI_OK)
+ 538   2               {     
+ 539   3                                break;
+ 540   3               }
+ 541   2                        display_type();//寻到卡后显示出该卡的类型
+ 542   2                    status = PcdAnticoll(g_ucTempbuf);//防冲撞
+ 543   2                 if (status != MI_OK)
+ 544   2                  {    break;    }
+ 545   2                 display_cardnum();//显示寻到的卡的序列号
+ 546   2                                      
+C51 COMPILER V9.01   MAIN                                                                  04/05/2022 15:07:19 PAGE 10  
+
+ 547   2                       status = PcdSelect(g_ucTempbuf);//选定卡片
+ 548   2               if (status != MI_OK)
+ 549   2               {    break;   }
+ 550   2               
+ 551   2               status = PcdAuthState(PICC_AUTHENT1A,23,Nowkey,g_ucTempbuf);//验证卡片密码
+ 552   2               if (status != MI_OK)
+ 553   2               {  diaplay(3,table10);
+ 554   3                          beep=0;  //蜂鸣器响两声     
+ 555   3                              delay(40);
+ 556   3                              beep=1;
+ 557   3                              delay(40); 
+ 558   3                              beep=0;         
+ 559   3                              delay(40);
+ 560   3                              beep=1; 
+ 561   3                          WaitCardOff();//等待卡离开天线
+ 562   3                          break; 
+ 563   3                       }
+ 564   2                        display_cardnum1();
+ 565   2            // display_cardnum();//显示寻到的卡的序列号
+ 566   2                          if (status != MI_OK)
+ 567   2               { // LED_GREEN = 1;
+ 568   3                        break;   }   
+ 569   2           //  display_cardnum();//显示寻到的卡的序列号
+ 570   2                       status = PcdBakValue(22, 21);//块备份
+ 571   2               if (status != MI_OK)
+ 572   2               {   break;   }
+ 573   2               status = PcdRead(21, g_ucTempbuf);//读块
+ 574   2               if (status != MI_OK)   
+ 575   2               {   break;   }
+ 576   2                          beep=0; //蜂鸣器响一声      
+ 577   2                              delay(40);
+ 578   2                              beep=1; 
+ 579   2                    WaitCardOff();//等待卡离开天线                                     
+ 580   2                        PcdHalt();
+ 581   2                        
+ 582   2         }
+ 583   1      }
+ 584          
+ 585          
+ 586          void WaitCardOff(void)  //等待卡离开
+ 587          {
+ 588   1        char  status;
+ 589   1        unsigned char TagType[2];
+ 590   1      
+ 591   1              while(1)
+ 592   1              {
+ 593   2                      status = PcdRequest(PICC_REQALL , TagType);
+ 594   2                      if(status)
+ 595   2                      {
+ 596   3                              status = PcdRequest(PICC_REQALL , TagType);
+ 597   3                              if(status)
+ 598   3                              {
+ 599   4                                      status = PcdRequest(PICC_REQALL , TagType);
+ 600   4                                      if(status)
+ 601   4                                      {
+ 602   5                                              return;
+ 603   5                                      }
+ 604   4                              }
+ 605   3                      }
+ 606   2                      delay(100);
+ 607   2              }
+ 608   1      }
+C51 COMPILER V9.01   MAIN                                                                  04/05/2022 15:07:19 PAGE 11  
+
+
+
+MODULE INFORMATION:   STATIC OVERLAYABLE
+   CODE SIZE        =   2365    ----
+   CONSTANT SIZE    =    366    ----
+   XDATA SIZE       =   ----    ----
+   PDATA SIZE       =     66      15
+   DATA SIZE        =   ----    ----
+   IDATA SIZE       =   ----    ----
+   BIT SIZE         =      2    ----
+END OF MODULE INFORMATION.
+
+
+C51 COMPILATION COMPLETE.  0 WARNING(S),  0 ERROR(S)

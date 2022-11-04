@@ -1,0 +1,241 @@
+C51 COMPILER V9.01   12864                                                                 04/05/2022 15:07:19 PAGE 1   
+
+
+C51 COMPILER V9.01, COMPILATION OF MODULE 12864
+OBJECT MODULE PLACED IN 12864.OBJ
+COMPILER INVOKED BY: D:\keil4\C51\BIN\C51.EXE 12864.c COMPACT BROWSE DEBUG OBJECTEXTEND
+
+line level    source
+
+   1          #include <intrins.h>    
+   2          #include <12864.h>
+   3          #include <stdio.h>
+   4          //#Include <string>
+   5          extern unsigned char g_ucTempbuf[20]; 
+   6          extern unsigned char receive[16];
+   7          extern unsigned char g_ucTempbuf1[10]; 
+   8          uchar code table3[]={"卡号:"};
+   9          uchar code table4[]={"卡类型: 门禁卡"};
+  10          float f_temp;
+  11          unsigned char bai,shi,ge;
+  12          void STC_send_bluetooth(unsigned char a);
+  13          /*******************************************************************/
+  14          /*                                                                 */
+  15          /*  延时函数                                                       */
+  16          /*                                                                 */
+  17          /*******************************************************************/
+  18          void delay(int ms)
+  19          {
+  20   1          while(ms--)
+  21   1              {
+  22   2            uchar i;
+  23   2                for(i=0;i<250;i++)  
+  24   2                 {
+  25   3                  _nop_();                       
+  26   3                      _nop_();
+  27   3                      _nop_();
+  28   3                      _nop_();
+  29   3                 }
+  30   2              }
+  31   1      }
+  32          
+  33          /*******************************************************************/
+  34          /*                                                                 */
+  35          /*检查LCD忙状态                                                    */
+  36          /*lcd_busy为1时，忙，等待。lcd-busy为0时,闲，可写指令与数据。      */
+  37          /*                                                                 */
+  38          /*******************************************************************/
+  39          bit lcd_busy()
+  40           {                          
+  41   1          bit result;
+  42   1          LCD_RS = 0;
+  43   1          LCD_RW = 1;
+  44   1          LCD_EN = 1;
+  45   1          delayNOP();
+  46   1          result = (bit)(P0&0x80);
+  47   1          LCD_EN = 0;
+  48   1          return(result); 
+  49   1       }
+  50          /*******************************************************************/
+  51          /*                                                                 */
+  52          /*写指令数据到LCD                                                  */
+  53          /*RS=L，RW=L，E=高脉冲，D0-D7=指令码。                             */
+  54          /*                                                                 */
+  55          /*******************************************************************/
+C51 COMPILER V9.01   12864                                                                 04/05/2022 15:07:19 PAGE 2   
+
+  56          void lcd_wcmd(uchar cmd)
+  57          {                          
+  58   1          LCD_RS = 0;
+  59   1          LCD_RW = 0;
+  60   1          LCD_EN = 0;
+  61   1          _nop_();
+  62   1          _nop_(); 
+  63   1          P0 = cmd;
+  64   1          delayNOP();
+  65   1          LCD_EN = 1;//下降沿写入
+  66   1          delayNOP();
+  67   1          LCD_EN = 0;  
+  68   1      }
+  69          /*******************************************************************/
+  70          /*                                                                 */
+  71          /*写显示数据到LCD                                                  */
+  72          /*RS=H，RW=L，E=高脉冲，D0-D7=数据。                               */
+  73          /*                                                                 */
+  74          /*******************************************************************/
+  75          void lcd_wdat(uchar dat)
+  76          {                          
+  77   1          LCD_RS = 1;
+  78   1          LCD_RW = 0;
+  79   1          LCD_EN = 0;
+  80   1          P0 = dat;
+  81   1          delayNOP();
+  82   1          LCD_EN = 1;
+  83   1          delayNOP();
+  84   1          LCD_EN = 0; 
+  85   1      }
+  86          /*******************************************************************/
+  87          /*                                                                 */
+  88          /*  LCD初始化设定                                                  */
+  89          /*                                                                 */
+  90          /*******************************************************************/
+  91          void lcd_init()
+  92          { 
+  93   1           LCD_psb = 1;
+  94   1          lcd_wcmd(0x34);      //扩充指令操作
+  95   1          delay(5);
+  96   1          lcd_wcmd(0x30);      //基本指令操作
+  97   1          delay(5);
+  98   1          lcd_wcmd(0x0C);      //显示开，关光标
+  99   1          delay(5);
+ 100   1          lcd_wcmd(0x01);      //清除LCD的显示内容
+ 101   1          delay(5);
+ 102   1      }
+ 103          
+ 104          /*********************************************************/
+ 105          /*                                                       */
+ 106          /* 设定显示位置                                          */
+ 107          /*                                                       */
+ 108          /*********************************************************/
+ 109          void lcd_pos(uchar X,uchar Y)
+ 110          {                          
+ 111   1         uchar  pos;
+ 112   1         if (X==0)
+ 113   1           {X=0x80;}
+ 114   1         else if (X==1)
+ 115   1           {X=0x90;}
+ 116   1         else if (X==2)
+ 117   1           {X=0x88;}
+C51 COMPILER V9.01   12864                                                                 04/05/2022 15:07:19 PAGE 3   
+
+ 118   1         else if (X==3)
+ 119   1           {X=0x98;}
+ 120   1         pos = X+Y ;  
+ 121   1         lcd_wcmd(pos);     //显示地址
+ 122   1      }
+ 123          
+ 124          void LCD_Data(unsigned char LCDbyte )
+ 125          {                //unsigned char bai,shi,ge;
+ 126   1                      //十进制
+ 127   1               bai=LCDbyte/100;
+ 128   1               shi=LCDbyte%100/10;
+ 129   1               ge=LCDbyte%100%10;
+ 130   1              
+ 131   1               
+ 132   1               //STC_send_bluetooth(0x43);              //字符C的ASCII码，作为此次发送完毕的结束标志
+ 133   1      
+ 134   1      }
+ 135          
+ 136          void display_type()//寻到卡后显示出该卡的类型
+ 137          {
+ 138   1              unsigned char num;
+ 139   1          lcd_wcmd(0x01);      //清除LCD的显示内容
+ 140   1          delay(5);
+ 141   1          lcd_pos(1,0);             //设置显示位置为第四行的第1个字符
+ 142   1              for(num=0;num<14;num++)    //第一行要显示的11个字符
+ 143   1              {
+ 144   2              lcd_wdat(table4[num]);  
+ 145   2                      
+ 146   2              }
+ 147   1      
+ 148   1      }
+ 149          
+ 150          void display_cardnum()  //读卡号
+ 151          {               unsigned char i = 0;
+ 152   1              //  unsigned char shu0,shu1,shu2,shu3;
+ 153   1              unsigned char num;
+ 154   1          lcd_pos(2,0);             //设置显示位置为第四行的第1个字符
+ 155   1              for(num=0;num<6;num++)    //第一行要显示的11个字符
+ 156   1              {
+ 157   2               lcd_wdat(table3[num]); 
+ 158   2              }
+ 159   1                       // STC_send_bluetooth('A');
+ 160   1               //delay(35);
+ 161   1              for(num=0;num<4;num++)//第一行要显示的11个字符
+ 162   1              {
+ 163   2                      lcd_pos(2,num+3);
+ 164   2                      LCD_Data(g_ucTempbuf[num]);//写数
+ 165   2                      
+ 166   2                      
+ 167   2                      
+ 168   2              // STC_send_bluetooth(bai+0x30);
+ 169   2              // STC_send_bluetooth(shi+0x30);
+ 170   2               //STC_send_bluetooth(ge+0x30);
+ 171   2                       lcd_wdat(bai+0x30);
+ 172   2               lcd_wdat(shi+0x30);
+ 173   2              // lcd_wdat(ge+0x30);
+ 174   2                                              }
+ 175   1      }
+ 176          
+ 177          
+ 178          void display_cardnum1() //读卡号
+ 179          {               unsigned char i = 0;
+C51 COMPILER V9.01   12864                                                                 04/05/2022 15:07:19 PAGE 4   
+
+ 180   1              //  unsigned char shu0,shu1,shu2,shu3;
+ 181   1              unsigned char num;
+ 182   1               STC_send_bluetooth('A');
+ 183   1               delay(35);
+ 184   1              for(num=0;num<4;num++)//第一行要显示的11个字符
+ 185   1              {
+ 186   2      
+ 187   2                      LCD_Data(g_ucTempbuf[num]);//写数
+ 188   2               STC_send_bluetooth(bai+0x30);
+ 189   2               STC_send_bluetooth(shi+0x30);
+ 190   2                                              }
+ 191   1      }
+ 192          void display_cardnum2() 
+ 193          {
+ 194   1      unsigned char num;
+ 195   1              
+ 196   1      for(num=1;num<9;num++)//第一行要显示的11个字符
+ 197   1              {
+ 198   2               STC_send_bluetooth(g_ucTempbuf1[num]);
+ 199   2      }
+ 200   1           
+ 201   1      
+ 202   1      }
+ 203          void diaplay(unsigned char addr,unsigned char *str)
+ 204          {
+ 205   1              lcd_pos(addr,0);             //设置显示位置为第四行的第1个字符
+ 206   1          while(*str!='\0')
+ 207   1              {
+ 208   2                lcd_wdat(*str);
+ 209   2                str++;
+ 210   2              }
+ 211   1      
+ 212   1      }
+
+
+MODULE INFORMATION:   STATIC OVERLAYABLE
+   CODE SIZE        =    426    ----
+   CONSTANT SIZE    =     21    ----
+   XDATA SIZE       =   ----    ----
+   PDATA SIZE       =      7       5
+   DATA SIZE        =   ----    ----
+   IDATA SIZE       =   ----    ----
+   BIT SIZE         =   ----       1
+END OF MODULE INFORMATION.
+
+
+C51 COMPILATION COMPLETE.  0 WARNING(S),  0 ERROR(S)
